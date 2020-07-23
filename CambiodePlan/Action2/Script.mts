@@ -1070,7 +1070,9 @@ Sub ValidaOrden()
 									Reporter.ReportEvent micPass,"Correcto", "Se valida el estado de la orden: "&DataTable("s_Nro_Orden",dtLocalSheet)
 								End If
 						Loop While Not ((DataTable("s_ValEstadoOrden", dtLocalSheet) = "Cerrado"))
-			 Call ValidaOrden()
+						JavaWindow("Ejecutivo de interacción").CaptureBitmap RutaEvidencias() &Num_Iter&"_"&"OrdenExitosaa.png", True
+						imagenToWord "Orden Exitosa",RutaEvidencias() &Num_Iter&"_"&"OrdenExitosaa.png"
+			 
 			
 		End If
 		
