@@ -1011,10 +1011,67 @@ Sub ValidaOrden()
 	
 			ElseIf (DataTable("s_ValEstadoOrden", dtLocalSheet) = "Enviado") Then
 			 Call EmpujeOrden() 
+			 wait 2
+				JavaWindow("Ejecutivo de interacción").JavaMenu("Buscar").JavaMenu("Pedidos").Select
+				JavaWindow("Ejecutivo de interacción").JavaMenu("Buscar").JavaMenu("Pedidos").JavaMenu("Órdenes").Select
+				
+					While (JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaEdit("TextFieldNative$1").Exist) = False
+						wait 1
+					Wend
+					wait 3
+				JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaEdit("TextFieldNative$1").SetFocus
+				JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaEdit("TextFieldNative$1").Set DataTable("s_Nro_Orden", dtLocalSheet)
+				wait 2
+				JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaCheckBox("Solo órdenes pendientes").Set "OFF"
+				wait 2
+				JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("Buscar ahora").Click
+				wait 2
+
+				tiempo=0
+						Do 
+							If JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("Buscar ahora").Exist Then
+								JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("Buscar ahora").Click
+								nroreg = JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("0 Registros").GetROProperty("attached text")
+								tiempo=tiempo+1
+								wait 1
+							End If
+							If (tiempo >= 180) Then
+									JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Grupo de órdenes").JavaButton("Cerrar").Click
+									DataTable("s_Resultado", dtLocalSheet) = "Fallido"
+									DataTable("s_Detalle", dtLocalSheet) = "No se encuentra la orden:"&DataTable("s_Nro_Orden", dtLocalSheet)&" para realizar la Gestion Logistica"
+									Reporter.ReportEvent micFail,DataTable("s_Resultado", dtLocalSheet),DataTable("s_Detalle", dtLocalSheet)
+									JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("Cerrar").Click
+									ExitActionIteration
+							End If
+						Loop While Not (nroreg="1 Registros")
+					
+					JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaTable("Ver por:").Output CheckPoint("Ver por:") @@ hightlight id_;_26172125_;_script infofile_;_ZIP::ssf85.xml_;_
+					Reporter.ReportEvent micPass,"Se valida el estado de la orden", DataTable("s_ValEstadoOrden", dtLocalSheet)
+					
+						tiempo = 0
+						Do
+							JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaButton("Buscar ahora").Click
+							tiempo = tiempo +1
+							wait 3
+								JavaWindow("Ejecutivo de interacción").JavaInternalFrame("Buscar: Orden").JavaTable("Ver por:").Output CheckPoint("Ver por:")
+								
+								
+								If (tiempo >= 180) Then	
+										DataTable("s_Resultado",dtLocalSheet) = "Fallido" 
+										DataTable("s_Detalle", dtLocalSheet) = "La Orden: "&DataTable("s_Nro_Orden", dtLocalSheet)&" no culmino en estado Cerrado"
+										Reporter.ReportEvent micFail,DataTable("s_Resultado",dtLocalSheet), DataTable("s_Detalle", dtLocalSheet)
+										JavaWindow("Ejecutivo de interacción").CaptureBitmap RutaEvidencias() &Num_Iter&"_"&"OrdenFallida.png", True
+										imagenToWord "Orden Fallida",RutaEvidencias() &Num_Iter&"_"&"OrdenFallida.png"
+'										If DataTable("s_ValEstadoOrden", dtLocalSheet) = "Enviado" Then
+'											Exit Do
+'											wait 1
+'										End If	
+								else
+									Reporter.ReportEvent micPass,"Correcto", "Se valida el estado de la orden: "&DataTable("s_Nro_Orden",dtLocalSheet)
+								End If
+						Loop While Not ((DataTable("s_ValEstadoOrden", dtLocalSheet) = "Cerrado"))
 			 Call ValidaOrden()
-			 While False
-			 	
-			 Wend
+			
 		End If
 		
 End Sub
